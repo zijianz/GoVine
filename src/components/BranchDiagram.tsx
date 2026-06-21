@@ -84,8 +84,9 @@ export default function BranchDiagram({
     return { layoutNodes: result, maxCol, maxRow };
   }, [treeNodes, currentNodeId, rootId]);
 
-  const moveNodes = layoutNodes.filter(n => n.move !== null);
-  if (moveNodes.length === 0) return null;
+  // Show root + all move nodes
+  const displayNodes = layoutNodes.filter(n => n.move !== null || n.parentId === null);
+  if (displayNodes.length === 0) return null;
 
   const svgW = (maxCol + 1) * CELL_W + PAD;
   const svgH = (maxRow + 1) * CELL_H + PAD;
@@ -181,15 +182,79 @@ export default function BranchDiagram({
         {edges}
 
         {/* Nodes */}
-        {layoutNodes
-          .filter(n => n.move !== null)
+        {displayNodes
           .map(n => {
             const cx = n.col * CELL_W + PAD;
             const cy = n.row * CELL_H + PAD;
-            const isBlack = n.move!.color === 'black';
+            const isRoot = n.parentId === null && n.move === null;
 
             // Clicking the current _leaf_ node that has no siblings removes it
             const canDelete = n.isCurrent && n.isLeaf && n.isOnlyChild;
+
+            // Root node: navigate to root (do nothing if already there)
+            const handleClick = () => {
+              if (canDelete) {
+                onDeleteLeaf();
+              } else if (isRoot && n.isCurrent) {
+                // Already at root — no-op
+                return;
+              } else {
+                onNavigate(n.id);
+              }
+            };
+
+            // Root node rendering
+            if (isRoot) {
+              return (
+                <g
+                  key={`diag-${n.id}`}
+                  onClick={handleClick}
+                  style={{ cursor: n.isCurrent ? 'default' : 'pointer' }}
+                  title="Go to starting position"
+                >
+                  {/* Invisible hit area */}
+                  <circle cx={cx} cy={cy} r={NODE_R + 5} fill="transparent" stroke="none" />
+                  {/* Root node — small gray square */}
+                  <rect
+                    x={cx - NODE_R}
+                    y={cy - NODE_R}
+                    width={NODE_R * 2}
+                    height={NODE_R * 2}
+                    rx={3}
+                    fill="#555"
+                    stroke={n.isCurrent ? '#e94560' : '#777'}
+                    strokeWidth={n.isCurrent ? 2.5 : 0.8}
+                  />
+                  {/* Current indicator ring */}
+                  {n.isCurrent && (
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={NODE_R + 3}
+                      fill="none"
+                      stroke="#e94560"
+                      strokeWidth={1.5}
+                      opacity={0.6}
+                    />
+                  )}
+                  {/* "Home" symbol */}
+                  <text
+                    x={cx}
+                    y={cy + 1}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill="#ddd"
+                    fontSize={9}
+                    style={{ pointerEvents: 'none', userSelect: 'none' }}
+                  >
+                    ⌂
+                  </text>
+                </g>
+              );
+            }
+
+            // Move node rendering
+            const isBlack = n.move!.color === 'black';
 
             // Go-style coordinate (e.g. "B12", "Q4")
             const colLabel = COL_LABELS[n.move!.col];
@@ -199,13 +264,7 @@ export default function BranchDiagram({
             return (
               <g
                 key={`diag-${n.id}`}
-                onClick={() => {
-                  if (canDelete) {
-                    onDeleteLeaf();
-                  } else {
-                    onNavigate(n.id);
-                  }
-                }}
+                onClick={handleClick}
                 style={{ cursor: 'pointer' }}
               >
                 {/* Invisible hit area */}
