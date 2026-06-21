@@ -1,0 +1,31 @@
+.board-wrapper {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.board-svg {
+  width: 580px;
+  height: 580px;
+  display: block;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  background: var(--color-board);
+}
+
+.move-number {
+  pointer-events: none;
+  user-select: none;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+}
+
+.error-overlay {
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

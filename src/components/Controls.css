@@ -1,0 +1,142 @@
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.game-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--color-surface);
+  border-radius: 8px;
+}
+
+.current-turn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.turn-stone {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #888;
+  flex-shrink: 0;
+}
+
+.turn-stone.black {
+  background: radial-gradient(circle at 35% 35%, #555, #111);
+}
+
+.turn-stone.white {
+  background: radial-gradient(circle at 35% 35%, #fff, #ccc);
+}
+
+.capture-counts {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.capture-counts strong {
+  color: var(--color-text);
+}
+
+.move-count {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.button-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.btn {
+  padding: 8px 6px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  user-select: none;
+  text-align: center;
+}
+
+.btn:hover:not(:disabled) {
+  background: #1e2d50;
+  border-color: var(--color-accent);
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn.active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+}
+
+.btn-save {
+  border-color: #3a6b3a;
+  color: #7ec87e;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: #1a3a1a;
+  border-color: #4a8b4a;
+}
+
+.btn-open {
+  border-color: #3a4a6b;
+  color: #7ea8d8;
+}
+
+.btn-open:hover:not(:disabled) {
+  background: #1a2a3a;
+  border-color: #4a6a9b;
+}
+
+.btn-new-game {
+  border-color: #6b2020;
+  color: #e06060;
+}
+
+.btn-new-game:hover:not(:disabled) {
+  background: #3a1515;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+/* ── Setup mode ── */
+
+.setup-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-accent);
+}
+
+.setup-color {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.setup-color strong {
+  color: var(--color-text);
+}
