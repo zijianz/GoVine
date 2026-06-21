@@ -22,6 +22,14 @@ export function useGame() {
     dispatch({ type: 'NAVIGATE_TO', nodeId });
   }, []);
 
+  const navigateBackward = useCallback(() => {
+    dispatch({ type: 'NAVIGATE_BACKWARD' });
+  }, []);
+
+  const navigateForward = useCallback(() => {
+    dispatch({ type: 'NAVIGATE_FORWARD' });
+  }, []);
+
   const toggleMoveNumbers = useCallback(() => {
     dispatch({ type: 'TOGGLE_MOVE_NUMBERS' });
   }, []);
@@ -104,6 +112,8 @@ export function useGame() {
     revert,
     branch,
     navigateTo,
+    navigateBackward,
+    navigateForward,
     toggleMoveNumbers,
     clearError,
     setError,

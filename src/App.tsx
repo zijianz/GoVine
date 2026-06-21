@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useGame } from './hooks/useGame';
-import { isAtLeafNode, canRevert } from './state/gameReducer';
+import { isAtLeafNode, canRevert, canNavigateBackward, canNavigateForward } from './state/gameReducer';
 import { generateSGF } from './core/sgf';
 import Board from './components/Board';
 import Controls from './components/Controls';
@@ -15,6 +15,8 @@ export default function App() {
     revert,
     branch,
     navigateTo,
+    navigateBackward,
+    navigateForward,
     toggleMoveNumbers,
     clearError,
     setError,
@@ -84,12 +86,16 @@ export default function App() {
             showMoveNumbers={state.showMoveNumbers}
             canRevert={canRevertNow}
             canBranch={canRevertNow}
+            canNavigateBackward={canNavigateBackward(state)}
+            canNavigateForward={canNavigateForward(state)}
             isAtLeaf={isAtLeaf}
             moveCount={state.moveHistory.length}
             setupMode={state.setupMode}
             setupColor={state.setupColor}
             onRevert={revert}
             onBranch={branch}
+            onNavigateBackward={navigateBackward}
+            onNavigateForward={navigateForward}
             onToggleMoveNumbers={toggleMoveNumbers}
             onSave={saveSGF}
             onOpenFile={handleOpenFile}

@@ -106,4 +106,6 @@ export type GameAction =
   | { type: 'PLACE_SETUP_STONE'; row: number; col: number }
   | { type: 'FINISH_SETUP' }
   | { type: 'NEW_GAME' }
-  | { type: 'CLEAR_ERROR' };
+  | { type: 'CLEAR_ERROR' }
+  | { type: 'NAVIGATE_BACKWARD' }
+  | { type: 'NAVIGATE_FORWARD' };

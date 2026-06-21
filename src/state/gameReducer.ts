@@ -171,6 +171,16 @@ export function canRevert(state: GameState): boolean {
   return isAtLeafNode(state) && state.moveHistory.length > 0;
 }
 
+export function canNavigateBackward(state: GameState): boolean {
+  const node = state.treeNodes.get(state.currentNodeId);
+  return node ? node.parentId !== null : false;
+}
+
+export function canNavigateForward(state: GameState): boolean {
+  const node = state.treeNodes.get(state.currentNodeId);
+  return node ? node.childrenIds.length > 0 : false;
+}
+
 // ── Reducer ──
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -261,6 +271,25 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const derived = deriveStateFromPath(state.treeNodes, action.nodeId, state.setupStones);
 
       return { ...state, ...derived, currentNodeId: action.nodeId, error: null };
+    }
+
+    case 'NAVIGATE_BACKWARD': {
+      const currentNode = state.treeNodes.get(state.currentNodeId);
+      if (!currentNode || !currentNode.parentId) return state;
+
+      const derived = deriveStateFromPath(state.treeNodes, currentNode.parentId, state.setupStones);
+
+      return { ...state, ...derived, currentNodeId: currentNode.parentId, error: null };
+    }
+
+    case 'NAVIGATE_FORWARD': {
+      const currentNode = state.treeNodes.get(state.currentNodeId);
+      if (!currentNode || currentNode.childrenIds.length === 0) return state;
+
+      const nextId = currentNode.childrenIds[0]; // main line = first child
+      const derived = deriveStateFromPath(state.treeNodes, nextId, state.setupStones);
+
+      return { ...state, ...derived, currentNodeId: nextId, error: null };
     }
 
     case 'REVERT': {

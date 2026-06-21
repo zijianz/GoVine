@@ -1,6 +1,8 @@
 # Go Board
 
-A Go (囲碁) board game app built with React + TypeScript + Vite.
+A Go (围棋) board game app built with React + TypeScript + Vite.
+
+![Go Board screenshot](docs/images/board_example.jpg)
 
 ## Quick Start
 

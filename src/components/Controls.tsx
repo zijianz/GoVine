@@ -9,12 +9,16 @@ interface ControlsProps {
   showMoveNumbers: boolean;
   canRevert: boolean;
   canBranch: boolean;
+  canNavigateBackward: boolean;
+  canNavigateForward: boolean;
   moveCount: number;
   isAtLeaf: boolean;
   setupMode: boolean;
   setupColor: 'black' | 'white';
   onRevert: () => void;
   onBranch: () => void;
+  onNavigateBackward: () => void;
+  onNavigateForward: () => void;
   onToggleMoveNumbers: () => void;
   onSave: () => void;
   onOpenFile: (sgfRoot: SGFNode) => void;
@@ -31,12 +35,16 @@ export default function Controls({
   showMoveNumbers,
   canRevert,
   canBranch,
+  canNavigateBackward,
+  canNavigateForward,
   moveCount,
   isAtLeaf,
   setupMode,
   setupColor,
   onRevert,
   onBranch,
+  onNavigateBackward,
+  onNavigateForward,
   onToggleMoveNumbers,
   onSave,
   onOpenFile,
@@ -179,6 +187,24 @@ export default function Controls({
           title={branchTitle}
         >
           ⎇ Branch
+        </button>
+
+        <button
+          className="btn"
+          disabled={!canNavigateBackward}
+          onClick={onNavigateBackward}
+          title={!canNavigateBackward ? 'Already at the first move' : 'Go back one move'}
+        >
+          ◀ Prev
+        </button>
+
+        <button
+          className="btn"
+          disabled={!canNavigateForward}
+          onClick={onNavigateForward}
+          title={!canNavigateForward ? 'Already at the last move' : 'Go forward one move'}
+        >
+          Next ▶
         </button>
 
         <button className="btn btn-save" onClick={onSave}>
