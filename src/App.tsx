@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useGame } from './hooks/useGame';
-import { isAtLeafNode, canRevert, canNavigateBackward, canNavigateForward } from './state/gameReducer';
+import { canRevert, canNavigateBackward, canNavigateForward } from './state/gameReducer';
 import { generateSGF } from './core/sgf';
 import Board from './components/Board';
 import Controls from './components/Controls';
@@ -13,7 +13,6 @@ export default function App() {
     state,
     placeStone,
     revert,
-    branch,
     navigateTo,
     navigateBackward,
     navigateForward,
@@ -44,7 +43,6 @@ export default function App() {
     [setError]
   );
 
-  const isAtLeaf = isAtLeafNode(state);
   const canRevertNow = canRevert(state);
   const comment = state.nodeComments.get(state.currentNodeId) ?? '';
 
@@ -85,15 +83,12 @@ export default function App() {
             capturedByWhite={state.capturedByWhite}
             showMoveNumbers={state.showMoveNumbers}
             canRevert={canRevertNow}
-            canBranch={canRevertNow}
             canNavigateBackward={canNavigateBackward(state)}
             canNavigateForward={canNavigateForward(state)}
-            isAtLeaf={isAtLeaf}
             moveCount={state.moveHistory.length}
             setupMode={state.setupMode}
             setupColor={state.setupColor}
             onRevert={revert}
-            onBranch={branch}
             onNavigateBackward={navigateBackward}
             onNavigateForward={navigateForward}
             onToggleMoveNumbers={toggleMoveNumbers}

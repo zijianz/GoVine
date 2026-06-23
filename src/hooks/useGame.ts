@@ -14,10 +14,6 @@ export function useGame() {
     dispatch({ type: 'REVERT' });
   }, []);
 
-  const branch = useCallback(() => {
-    dispatch({ type: 'BRANCH' });
-  }, []);
-
   const navigateTo = useCallback((nodeId: string) => {
     dispatch({ type: 'NAVIGATE_TO', nodeId });
   }, []);
@@ -110,7 +106,6 @@ export function useGame() {
     state,
     placeStone,
     revert,
-    branch,
     navigateTo,
     navigateBackward,
     navigateForward,

@@ -95,7 +95,6 @@ export interface SGFNode {
 export type GameAction =
   | { type: 'PLACE_STONE'; row: number; col: number }
   | { type: 'REVERT' }
-  | { type: 'BRANCH' }
   | { type: 'NAVIGATE_TO'; nodeId: string }
   | { type: 'TOGGLE_MOVE_NUMBERS' }
   | { type: 'LOAD_SGF'; sgfRoot: SGFNode }

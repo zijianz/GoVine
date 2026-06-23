@@ -254,16 +254,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
-    case 'BRANCH': {
-      const currentNode = state.treeNodes.get(state.currentNodeId);
-      if (!currentNode || !currentNode.parentId) return state;
-
-      const newCurrentNodeId = currentNode.parentId;
-      const derived = deriveStateFromPath(state.treeNodes, newCurrentNodeId, state.setupStones);
-
-      return { ...state, ...derived, error: null, currentNodeId: newCurrentNodeId };
-    }
-
     case 'NAVIGATE_TO': {
       const target = state.treeNodes.get(action.nodeId);
       if (!target) return state;

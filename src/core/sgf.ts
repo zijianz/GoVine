@@ -56,18 +56,7 @@ function generateNode(
         result += `[${toSGFCoord(s.row, s.col)}]`;
       }
     }
-    // If root has >1 child, wrap all in (...) so they are siblings,
-    // not a main-line chain. If exactly 1 child, use inline (standard).
-    if (node.childrenIds.length > 1) {
-      for (const childId of node.childrenIds) {
-        const child = treeNodes.get(childId);
-        if (child) {
-          result += '(' + generateNode(treeNodes, nodeComments, setupStones, child.id) + ')';
-        }
-      }
-    } else {
-      result += generateChildren(treeNodes, nodeComments, setupStones, node);
-    }
+    result += generateChildren(treeNodes, nodeComments, setupStones, node);
     return result;
   }
 
@@ -92,15 +81,19 @@ function generateChildren(
 ): string {
   if (node.childrenIds.length === 0) return '';
 
-  let result = '';
-  // First child: main line (inline, no wrapping parens)
-  const firstChild = treeNodes.get(node.childrenIds[0]);
-  if (firstChild) {
-    result += generateNode(treeNodes, nodeComments, setupStones, firstChild.id);
+  // Single child: emit inline (no wrapping needed)
+  if (node.childrenIds.length === 1) {
+    const child = treeNodes.get(node.childrenIds[0]);
+    return child ? generateNode(treeNodes, nodeComments, setupStones, child.id) : '';
   }
-  // Remaining children: branches (each wrapped in parentheses)
-  for (let i = 1; i < node.childrenIds.length; i++) {
-    const child = treeNodes.get(node.childrenIds[i]);
+
+  // Multiple children: ALL must be wrapped in parentheses.
+  // Otherwise the SGF parser attaches variations to the wrong parent —
+  // e.g. ";B[c];B[d];W[e](;W[f])" makes W[f] a child of W[e],
+  // not a sibling variation under B[d].
+  let result = '';
+  for (const childId of node.childrenIds) {
+    const child = treeNodes.get(childId);
     if (child) {
       result += '(' + generateNode(treeNodes, nodeComments, setupStones, child.id) + ')';
     }

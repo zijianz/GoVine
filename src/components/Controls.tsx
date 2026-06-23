@@ -8,15 +8,12 @@ interface ControlsProps {
   capturedByWhite: number;
   showMoveNumbers: boolean;
   canRevert: boolean;
-  canBranch: boolean;
   canNavigateBackward: boolean;
   canNavigateForward: boolean;
   moveCount: number;
-  isAtLeaf: boolean;
   setupMode: boolean;
   setupColor: 'black' | 'white';
   onRevert: () => void;
-  onBranch: () => void;
   onNavigateBackward: () => void;
   onNavigateForward: () => void;
   onToggleMoveNumbers: () => void;
@@ -34,15 +31,12 @@ export default function Controls({
   capturedByWhite,
   showMoveNumbers,
   canRevert,
-  canBranch,
   canNavigateBackward,
   canNavigateForward,
   moveCount,
-  isAtLeaf,
   setupMode,
   setupColor,
   onRevert,
-  onBranch,
   onNavigateBackward,
   onNavigateForward,
   onToggleMoveNumbers,
@@ -131,18 +125,8 @@ export default function Controls({
   const revertTitle = !canRevert
     ? moveCount === 0
       ? 'No moves to revert'
-      : !isAtLeaf
-        ? 'Can only revert the last move'
-        : ''
+      : 'Can only revert the last move'
     : 'Undo the last move';
-
-  const branchTitle = !canBranch
-    ? moveCount === 0
-      ? 'No moves to branch from'
-      : !isAtLeaf
-        ? 'Can only branch from the last move'
-        : ''
-    : 'Create a branch from the previous move';
 
   return (
     <div className="controls">
@@ -178,15 +162,6 @@ export default function Controls({
           title={revertTitle}
         >
           ↩ Revert
-        </button>
-
-        <button
-          className="btn"
-          disabled={!canBranch}
-          onClick={onBranch}
-          title={branchTitle}
-        >
-          ⎇ Branch
         </button>
 
         <button
