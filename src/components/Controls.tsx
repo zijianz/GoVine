@@ -1,21 +1,17 @@
 import { useRef, useCallback } from 'react';
 import { parseSGFFile } from '../core/sgf';
-import type { SGFNode } from '../core/types';
+import type { SGFNode, MarkTool } from '../core/types';
 import './Controls.css';
 
 interface ControlsProps {
   capturedByBlack: number;
   capturedByWhite: number;
   showMoveNumbers: boolean;
-  canRevert: boolean;
-  canNavigateBackward: boolean;
-  canNavigateForward: boolean;
+  canDelete: boolean;
   moveCount: number;
   setupMode: boolean;
   setupColor: 'black' | 'white';
-  onRevert: () => void;
-  onNavigateBackward: () => void;
-  onNavigateForward: () => void;
+  onDelete: () => void;
   onToggleMoveNumbers: () => void;
   onSave: () => void;
   onOpenFile: (sgfRoot: SGFNode) => void;
@@ -24,21 +20,21 @@ interface ControlsProps {
   onEnterSetupMode: () => void;
   onSetSetupColor: (color: 'black' | 'white') => void;
   onFinishSetup: () => void;
+  marksMode: boolean;
+  markType: MarkTool;
+  onToggleMarksMode: () => void;
+  onSetMarkType: (markType: MarkTool) => void;
 }
 
 export default function Controls({
   capturedByBlack,
   capturedByWhite,
   showMoveNumbers,
-  canRevert,
-  canNavigateBackward,
-  canNavigateForward,
+  canDelete,
   moveCount,
   setupMode,
   setupColor,
-  onRevert,
-  onNavigateBackward,
-  onNavigateForward,
+  onDelete,
   onToggleMoveNumbers,
   onSave,
   onOpenFile,
@@ -47,6 +43,10 @@ export default function Controls({
   onEnterSetupMode,
   onSetSetupColor,
   onFinishSetup,
+  marksMode,
+  markType,
+  onToggleMarksMode,
+  onSetMarkType,
 }: ControlsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -103,30 +103,28 @@ export default function Controls({
             className={`btn ${setupColor === 'black' ? 'active' : ''}`}
             onClick={() => onSetSetupColor('black')}
           >
-            ● Place Black
+            Place Black
           </button>
           <button
             className={`btn ${setupColor === 'white' ? 'active' : ''}`}
             onClick={() => onSetSetupColor('white')}
           >
-            ○ Place White
+            Place White
           </button>
           <button className="btn btn-save" onClick={onFinishSetup}>
-            ✓ Finish
+            Finish
           </button>
           <button className="btn btn-new-game" onClick={onNewGame}>
-            ✗ Cancel
+            Cancel
           </button>
         </div>
       </div>
     );
   }
 
-  const revertTitle = !canRevert
-    ? moveCount === 0
-      ? 'No moves to revert'
-      : 'Can only revert the last move'
-    : 'Undo the last move';
+  const deleteTitle = !canDelete
+    ? 'Cannot delete the root position'
+    : 'Delete this move and everything after it';
 
   return (
     <div className="controls">
@@ -145,54 +143,59 @@ export default function Controls({
       {/* Buttons */}
       <div className="button-group">
         <button className="btn btn-new-game" onClick={handleNewGame}>
-          🆕 New Game
+          New Game
+        </button>
+
+        <button className="btn" onClick={onEnterSetupMode}>
+          Place Stones
+        </button>
+
+        <button className="btn btn-open" onClick={handleOpenClick}>
+          Open
+        </button>
+
+        <button className="btn btn-save" onClick={onSave}>
+          Save As
+        </button>
+
+        <button
+          className="btn"
+          disabled={!canDelete}
+          onClick={onDelete}
+          title={deleteTitle}
+        >
+          Delete
         </button>
 
         <button
           className={`btn ${showMoveNumbers ? 'active' : ''}`}
           onClick={onToggleMoveNumbers}
         >
-          {showMoveNumbers ? '🔢 Hide Idx' : '🔢 Show Idx'}
+          {showMoveNumbers ? 'Hide Idx' : 'Show Idx'}
         </button>
 
-        <button
-          className="btn"
-          disabled={!canRevert}
-          onClick={onRevert}
-          title={revertTitle}
-        >
-          ↩ Revert
-        </button>
-
-        <button
-          className="btn"
-          disabled={!canNavigateBackward}
-          onClick={onNavigateBackward}
-          title={!canNavigateBackward ? 'Already at the first move' : 'Go back one move'}
-        >
-          ◀ Prev
-        </button>
-
-        <button
-          className="btn"
-          disabled={!canNavigateForward}
-          onClick={onNavigateForward}
-          title={!canNavigateForward ? 'Already at the last move' : 'Go forward one move'}
-        >
-          Next ▶
-        </button>
-
-        <button className="btn btn-save" onClick={onSave}>
-          💾 Save As
-        </button>
-
-        <button className="btn btn-open" onClick={handleOpenClick}>
-          📂 Open
-        </button>
-
-        <button className="btn" onClick={onEnterSetupMode}>
-          ⚫ Place Stones
-        </button>
+        <div className="marks-control">
+          <button
+            className={`btn marks-toggle ${marksMode ? 'active' : ''}`}
+            onClick={onToggleMarksMode}
+          >
+            {marksMode && markType === 'ERASE' ? 'Eraser' : 'Marks'}
+          </button>
+          <select
+            className="mark-type-select"
+            value={markType}
+            disabled={!marksMode}
+            onChange={(e) => onSetMarkType(e.target.value as MarkTool)}
+          >
+            <option value="ERASE">⌫</option>
+            <option value="CR">○</option>
+            <option value="SQ">□</option>
+            <option value="TR">△</option>
+            <option value="MA">✕</option>
+            <option value="SL">◆</option>
+            <option value="DD">░</option>
+          </select>
+        </div>
 
         <input
           ref={fileInputRef}

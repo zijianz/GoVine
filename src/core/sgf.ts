@@ -1,4 +1,4 @@
-import type { SGFMetadata, SGFMove, SGFNode, TreeNode } from './types';
+import type { SGFMetadata, SGFMove, SGFNode, TreeNode, Mark } from './types';
 
 // ── Coordinate conversion ──
 // Internal: (row=0, col=0) = top-left
@@ -56,6 +56,7 @@ function generateNode(
         result += `[${toSGFCoord(s.row, s.col)}]`;
       }
     }
+    result += emitMarks(node.marks ?? []);
     result += generateChildren(treeNodes, nodeComments, setupStones, node);
     return result;
   }
@@ -69,6 +70,7 @@ function generateNode(
   if (comment) {
     result += `C[${escapeSGF(comment)}]`;
   }
+  result += emitMarks(node.marks ?? []);
   result += generateChildren(treeNodes, nodeComments, setupStones, node);
   return result;
 }
@@ -104,6 +106,26 @@ function generateChildren(
 /** Escape special characters in SGF text values */
 function escapeSGF(s: string): string {
   return s.replace(/\\/g, '\\\\').replace(/\]/g, '\\]');
+}
+
+/** Emit SGF mark properties for a node's marks */
+function emitMarks(marks: Mark[]): string {
+  if (!marks || marks.length === 0) return '';
+  // Group by type
+  const byType = new Map<string, Mark[]>();
+  for (const m of marks) {
+    const list = byType.get(m.type);
+    if (list) list.push(m);
+    else byType.set(m.type, [m]);
+  }
+  let result = '';
+  for (const [type, list] of byType) {
+    result += type;
+    for (const m of list) {
+      result += `[${toSGFCoord(m.row, m.col)}]`;
+    }
+  }
+  return result;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -181,6 +203,10 @@ function parseCollection(
           white: propResult.setupWhite,
         };
       }
+      // Collect marks
+      if (propResult.marks.length > 0) {
+        sgfNode.marks = propResult.marks;
+      }
       i = propResult.nextIndex;
 
       // After parsing properties, collect any "(...)" child collections.
@@ -232,11 +258,12 @@ function parseProperties(
   s: string,
   startIndex: number,
   metadata: SGFMetadata
-): { move: SGFMove | null; comment: string; setupBlack: { row: number; col: number }[]; setupWhite: { row: number; col: number }[]; nextIndex: number } {
+): { move: SGFMove | null; comment: string; setupBlack: { row: number; col: number }[]; setupWhite: { row: number; col: number }[]; marks: Mark[]; nextIndex: number } {
   let move: SGFMove | null = null;
   let comment = '';
   const setupBlack: { row: number; col: number }[] = [];
   const setupWhite: { row: number; col: number }[] = [];
+  const marks: Mark[] = [];
   let i = startIndex;
 
   // Regex to match KEY at current position
@@ -301,10 +328,40 @@ function parseProperties(
       case 'C':
         comment = firstVal;
         break;
+      case 'CR':
+        for (const v of values) {
+          if (v.length >= 2) marks.push({ type: 'CR', ...fromSGFCoord(v) });
+        }
+        break;
+      case 'SQ':
+        for (const v of values) {
+          if (v.length >= 2) marks.push({ type: 'SQ', ...fromSGFCoord(v) });
+        }
+        break;
+      case 'TR':
+        for (const v of values) {
+          if (v.length >= 2) marks.push({ type: 'TR', ...fromSGFCoord(v) });
+        }
+        break;
+      case 'MA':
+        for (const v of values) {
+          if (v.length >= 2) marks.push({ type: 'MA', ...fromSGFCoord(v) });
+        }
+        break;
+      case 'SL':
+        for (const v of values) {
+          if (v.length >= 2) marks.push({ type: 'SL', ...fromSGFCoord(v) });
+        }
+        break;
+      case 'DD':
+        for (const v of values) {
+          if (v.length >= 2) marks.push({ type: 'DD', ...fromSGFCoord(v) });
+        }
+        break;
     }
   }
 
-  return { move, comment, setupBlack, setupWhite, nextIndex: i };
+  return { move, comment, setupBlack, setupWhite, marks, nextIndex: i };
 }
 
 // ═══════════════════════════════════════════════════════════════

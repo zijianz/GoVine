@@ -22,12 +22,23 @@ export interface MoveRecord {
   previousBoardState: string;
 }
 
+// ── Board marks ──
+export type MarkType = 'CR' | 'SQ' | 'TR' | 'MA' | 'SL' | 'DD';
+export type MarkTool = MarkType | 'ERASE';
+
+export interface Mark {
+  type: MarkType;
+  row: number;
+  col: number;
+}
+
 // ── Game tree node ──
 export interface TreeNode {
   id: string;
   parentId: string | null; // null only for root
   childrenIds: string[]; // ordered; first child = main line
   move: MoveRecord | null; // null only for root
+  marks?: Mark[]; // board marks on this node
 }
 
 // ── Full game state ──
@@ -55,6 +66,8 @@ export interface GameState {
   setupMode: boolean;
   setupColor: StoneColor;
   setupStones: { black: Position[]; white: Position[] };
+  marksMode: boolean;
+  markType: MarkTool;
 }
 
 // ── Legality-check result ──
@@ -89,12 +102,13 @@ export interface SGFNode {
   children: SGFNode[]; // first = main line, rest = branches
   comment?: string; // C[...] property
   setupStones?: { black: Position[]; white: Position[] };
+  marks?: Mark[]; // board marks (CR, SQ, TR, MA, SL, DD)
 }
 
 // ── Reducer actions ──
 export type GameAction =
   | { type: 'PLACE_STONE'; row: number; col: number }
-  | { type: 'REVERT' }
+  | { type: 'DELETE_NODE' }
   | { type: 'NAVIGATE_TO'; nodeId: string }
   | { type: 'TOGGLE_MOVE_NUMBERS' }
   | { type: 'LOAD_SGF'; sgfRoot: SGFNode }
@@ -106,5 +120,7 @@ export type GameAction =
   | { type: 'FINISH_SETUP' }
   | { type: 'NEW_GAME' }
   | { type: 'CLEAR_ERROR' }
-  | { type: 'NAVIGATE_BACKWARD' }
-  | { type: 'NAVIGATE_FORWARD' };
+  | { type: 'TOGGLE_MARKS_MODE' }
+  | { type: 'SET_MARK_TYPE'; markType: MarkTool }
+  | { type: 'PLACE_MARK'; row: number; col: number }
+;

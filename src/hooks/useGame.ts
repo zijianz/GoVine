@@ -1,7 +1,7 @@
 import { useReducer, useCallback } from 'react';
 import { generateSGF } from '../core/sgf';
 import { createInitialState, gameReducer } from '../state/gameReducer';
-import type { SGFNode } from '../core/types';
+import type { SGFNode, MarkTool } from '../core/types';
 
 export function useGame() {
   const [state, dispatch] = useReducer(gameReducer, null, createInitialState);
@@ -10,20 +10,12 @@ export function useGame() {
     dispatch({ type: 'PLACE_STONE', row, col });
   }, []);
 
-  const revert = useCallback(() => {
-    dispatch({ type: 'REVERT' });
+  const deleteNode = useCallback(() => {
+    dispatch({ type: 'DELETE_NODE' });
   }, []);
 
   const navigateTo = useCallback((nodeId: string) => {
     dispatch({ type: 'NAVIGATE_TO', nodeId });
-  }, []);
-
-  const navigateBackward = useCallback(() => {
-    dispatch({ type: 'NAVIGATE_BACKWARD' });
-  }, []);
-
-  const navigateForward = useCallback(() => {
-    dispatch({ type: 'NAVIGATE_FORWARD' });
   }, []);
 
   const toggleMoveNumbers = useCallback(() => {
@@ -66,6 +58,18 @@ export function useGame() {
     dispatch({ type: 'FINISH_SETUP' });
   }, []);
 
+  const toggleMarksMode = useCallback(() => {
+    dispatch({ type: 'TOGGLE_MARKS_MODE' });
+  }, []);
+
+  const setMarkType = useCallback((markType: MarkTool) => {
+    dispatch({ type: 'SET_MARK_TYPE', markType });
+  }, []);
+
+  const placeMark = useCallback((row: number, col: number) => {
+    dispatch({ type: 'PLACE_MARK', row, col });
+  }, []);
+
   /** Save current game as an SGF file */
   const saveSGF = useCallback(async () => {
     const sgfContent = generateSGF(state.treeNodes, state.nodeComments, state.setupStones, 'root');
@@ -105,10 +109,8 @@ export function useGame() {
   return {
     state,
     placeStone,
-    revert,
+    deleteNode,
     navigateTo,
-    navigateBackward,
-    navigateForward,
     toggleMoveNumbers,
     clearError,
     setError,
@@ -120,5 +122,8 @@ export function useGame() {
     loadSGF,
     newGame,
     saveSGF,
+    toggleMarksMode,
+    setMarkType,
+    placeMark,
   };
 }

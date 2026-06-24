@@ -4,7 +4,7 @@ import {
   executeMove,
   serializeBoard,
 } from '../core/gameLogic';
-import type { GameState, GameAction, TreeNode, MoveRecord, SGFNode } from '../core/types';
+import type { GameState, GameAction, TreeNode, MoveRecord, SGFNode, Mark } from '../core/types';
 
 // ── Node ID counter ──
 
@@ -46,6 +46,8 @@ export function createInitialState(): GameState {
     setupMode: false,
     setupColor: 'black',
     setupStones: { black: [], white: [] },
+    marksMode: false,
+    markType: 'CR',
   };
 }
 
@@ -150,6 +152,9 @@ export function buildTreeFromSGF(
   }
 
   const treeNode: TreeNode = { id, parentId, childrenIds: [], move };
+  if (sgfNode.marks && sgfNode.marks.length > 0) {
+    treeNode.marks = sgfNode.marks;
+  }
   treeNodes.set(id, treeNode);
 
   for (const childSGF of sgfNode.children) {
@@ -162,23 +167,9 @@ export function buildTreeFromSGF(
 
 // ── Selectors ──
 
-export function isAtLeafNode(state: GameState): boolean {
-  const node = state.treeNodes.get(state.currentNodeId);
-  return node ? node.childrenIds.length === 0 : true;
-}
-
-export function canRevert(state: GameState): boolean {
-  return isAtLeafNode(state) && state.moveHistory.length > 0;
-}
-
-export function canNavigateBackward(state: GameState): boolean {
+export function canDelete(state: GameState): boolean {
   const node = state.treeNodes.get(state.currentNodeId);
   return node ? node.parentId !== null : false;
-}
-
-export function canNavigateForward(state: GameState): boolean {
-  const node = state.treeNodes.get(state.currentNodeId);
-  return node ? node.childrenIds.length > 0 : false;
 }
 
 // ── Reducer ──
@@ -263,26 +254,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, ...derived, currentNodeId: action.nodeId, error: null };
     }
 
-    case 'NAVIGATE_BACKWARD': {
-      const currentNode = state.treeNodes.get(state.currentNodeId);
-      if (!currentNode || !currentNode.parentId) return state;
-
-      const derived = deriveStateFromPath(state.treeNodes, currentNode.parentId, state.setupStones);
-
-      return { ...state, ...derived, currentNodeId: currentNode.parentId, error: null };
-    }
-
-    case 'NAVIGATE_FORWARD': {
-      const currentNode = state.treeNodes.get(state.currentNodeId);
-      if (!currentNode || currentNode.childrenIds.length === 0) return state;
-
-      const nextId = currentNode.childrenIds[0]; // main line = first child
-      const derived = deriveStateFromPath(state.treeNodes, nextId, state.setupStones);
-
-      return { ...state, ...derived, currentNodeId: nextId, error: null };
-    }
-
-    case 'REVERT': {
+    case 'DELETE_NODE': {
       const currentNode = state.treeNodes.get(state.currentNodeId);
       if (!currentNode || !currentNode.parentId) return state;
 
@@ -290,34 +262,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const parentNode = state.treeNodes.get(parentId)!;
       const newTreeNodes = new Map(state.treeNodes);
 
-      const shouldDelete = (() => {
-        let nid: string | null = state.currentNodeId;
-        while (nid !== null) {
-          const n = state.treeNodes.get(nid);
-          if (!n || n.parentId === null) break;
-          const p = state.treeNodes.get(n.parentId);
-          if (p && p.childrenIds[0] !== nid) return true;
-          nid = n.parentId;
-        }
-        if (currentNode.childrenIds.length === 0 && parentNode.childrenIds.length === 1) {
-          return true;
-        }
-        return false;
-      })();
+      // Delete the current node and everything after it
+      deleteSubtree(newTreeNodes, state.currentNodeId);
+      const updatedParent: TreeNode = {
+        ...parentNode,
+        childrenIds: parentNode.childrenIds.filter(id => id !== state.currentNodeId),
+      };
+      newTreeNodes.set(parentId, updatedParent);
 
-      if (shouldDelete) {
-        deleteSubtree(newTreeNodes, state.currentNodeId);
-        const updatedParent: TreeNode = {
-          ...parentNode,
-          childrenIds: parentNode.childrenIds.filter(id => id !== state.currentNodeId),
-        };
-        newTreeNodes.set(parentId, updatedParent);
-      }
+      const derived = deriveStateFromPath(newTreeNodes, parentId, state.setupStones);
 
-      const newCurrentNodeId = parentId;
-      const derived = deriveStateFromPath(newTreeNodes, newCurrentNodeId, state.setupStones);
-
-      return { ...state, ...derived, treeNodes: newTreeNodes, currentNodeId: newCurrentNodeId, error: null };
+      return { ...state, ...derived, treeNodes: newTreeNodes, currentNodeId: parentId, error: null };
     }
 
     case 'TOGGLE_MOVE_NUMBERS':
@@ -434,6 +389,52 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'CLEAR_ERROR':
       return { ...state, error: null };
+
+    case 'TOGGLE_MARKS_MODE': {
+      const nextMarksMode = !state.marksMode;
+      return {
+        ...state,
+        marksMode: nextMarksMode,
+        markType: nextMarksMode ? state.markType : 'CR',
+      };
+    }
+
+    case 'SET_MARK_TYPE':
+      return { ...state, markType: action.markType };
+
+    case 'PLACE_MARK': {
+      const currentNode = state.treeNodes.get(state.currentNodeId);
+      if (!currentNode) return state;
+
+      const existingMarks = currentNode.marks ?? [];
+      const { row, col } = action;
+
+      let newMarks: Mark[];
+
+      if (state.markType === 'ERASE') {
+        // Eraser: remove all marks at this position
+        newMarks = existingMarks.filter(
+          m => !(m.row === row && m.col === col)
+        );
+      } else {
+        // Toggle: if mark of same type exists at this position, remove it; else add
+        const idx = existingMarks.findIndex(
+          m => m.type === state.markType && m.row === row && m.col === col
+        );
+        if (idx >= 0) {
+          newMarks = [...existingMarks];
+          newMarks.splice(idx, 1);
+        } else {
+          newMarks = [...existingMarks, { type: state.markType as Mark['type'], row, col }];
+        }
+      }
+
+      const updatedNode: TreeNode = { ...currentNode, marks: newMarks };
+      const newTreeNodes = new Map(state.treeNodes);
+      newTreeNodes.set(state.currentNodeId, updatedNode);
+
+      return { ...state, treeNodes: newTreeNodes };
+    }
 
     default:
       return state;

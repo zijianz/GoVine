@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useGame } from './hooks/useGame';
-import { canRevert, canNavigateBackward, canNavigateForward } from './state/gameReducer';
+import { canDelete } from './state/gameReducer';
 import { generateSGF } from './core/sgf';
 import Board from './components/Board';
 import Controls from './components/Controls';
@@ -12,10 +12,8 @@ export default function App() {
   const {
     state,
     placeStone,
-    revert,
+    deleteNode,
     navigateTo,
-    navigateBackward,
-    navigateForward,
     toggleMoveNumbers,
     clearError,
     setError,
@@ -27,6 +25,9 @@ export default function App() {
     loadSGF,
     newGame,
     saveSGF,
+    toggleMarksMode,
+    setMarkType,
+    placeMark,
   } = useGame();
 
   const handleOpenFile = useCallback(
@@ -43,11 +44,16 @@ export default function App() {
     [setError]
   );
 
-  const canRevertNow = canRevert(state);
+  const canDeleteNow = canDelete(state);
   const comment = state.nodeComments.get(state.currentNodeId) ?? '';
+  const currentNodeMarks = state.treeNodes.get(state.currentNodeId)?.marks;
 
-  // Click handler: setup mode vs play mode
-  const handleCellClick = state.setupMode ? placeSetupStone : placeStone;
+  // Click handler: setup mode → marks mode → play mode
+  const handleCellClick = state.setupMode
+    ? placeSetupStone
+    : state.marksMode
+      ? placeMark
+      : placeStone;
 
   // Live SGF preview
   const sgfPreview = useMemo(
@@ -76,21 +82,19 @@ export default function App() {
           currentPlayer={state.setupMode ? state.setupColor : state.currentPlayer}
           error={state.error}
           onErrorDismiss={clearError}
+          marks={currentNodeMarks}
+          marksMode={state.marksMode}
         />
         <div className="right-column">
           <Controls
             capturedByBlack={state.capturedByBlack}
             capturedByWhite={state.capturedByWhite}
             showMoveNumbers={state.showMoveNumbers}
-            canRevert={canRevertNow}
-            canNavigateBackward={canNavigateBackward(state)}
-            canNavigateForward={canNavigateForward(state)}
+            canDelete={canDeleteNow}
             moveCount={state.moveHistory.length}
             setupMode={state.setupMode}
             setupColor={state.setupColor}
-            onRevert={revert}
-            onNavigateBackward={navigateBackward}
-            onNavigateForward={navigateForward}
+            onDelete={deleteNode}
             onToggleMoveNumbers={toggleMoveNumbers}
             onSave={saveSGF}
             onOpenFile={handleOpenFile}
@@ -99,6 +103,10 @@ export default function App() {
             onEnterSetupMode={enterSetupMode}
             onSetSetupColor={setSetupColor}
             onFinishSetup={finishSetup}
+            marksMode={state.marksMode}
+            markType={state.markType}
+            onToggleMarksMode={toggleMarksMode}
+            onSetMarkType={setMarkType}
           />
           {!state.setupMode && (
             <BranchDiagram
@@ -106,7 +114,7 @@ export default function App() {
               currentNodeId={state.currentNodeId}
               rootId="root"
               onNavigate={navigateTo}
-              onDeleteLeaf={revert}
+              onDeleteLeaf={deleteNode}
             />
           )}
         </div>

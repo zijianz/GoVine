@@ -1,6 +1,6 @@
 import { useState, useCallback, memo } from 'react';
 import { BOARD_SIZE, PADDING, CELL_SIZE, SVG_SIZE, STONE_RADIUS, STAR_POINTS, COL_LABELS, ROW_LABELS } from '../core/constants';
-import type { Board as BoardType } from '../core/types';
+import type { Board as BoardType, Mark } from '../core/types';
 import './Board.css';
 
 interface BoardProps {
@@ -11,6 +11,8 @@ interface BoardProps {
   currentPlayer: 'black' | 'white';
   error: string | null;
   onErrorDismiss: () => void;
+  marks?: Mark[];
+  marksMode?: boolean;
 }
 
 /** Convert intersection (row, col) to SVG pixel coordinates */
@@ -38,6 +40,8 @@ const Board = memo(function Board({
   currentPlayer,
   error,
   onErrorDismiss,
+  marks,
+  marksMode,
 }: BoardProps) {
   const [hoveredCell, setHoveredCell] = useState<{ row: number; col: number } | null>(null);
 
@@ -149,9 +153,9 @@ const Board = memo(function Board({
     }
   }
 
-  // Hover preview stone
+  // Hover preview stone (only in play mode, not marks/setup)
   let hoverStone: JSX.Element | null = null;
-  if (hoveredCell && board[hoveredCell.row][hoveredCell.col] === null) {
+  if (!marksMode && hoveredCell && board[hoveredCell.row][hoveredCell.col] === null) {
     const hx = toSvgX(hoveredCell.col);
     const hy = toSvgY(hoveredCell.row);
     hoverStone = (
@@ -215,6 +219,81 @@ const Board = memo(function Board({
 
         {/* Stones */}
         {stones}
+
+        {/* Marks */}
+        {marks && marks.length > 0 && (
+          <g className="marks-layer">
+            {marks.map((mark, i) => {
+              const cx = toSvgX(mark.col);
+              const cy = toSvgY(mark.row);
+              const onBlack = board[mark.row]?.[mark.col] === 'black';
+              const accent = mark.type === 'DD' ? 'rgba(128,128,128,0.35)' : onBlack ? '#f0f0f0' : '#1a1a1a';
+              const key = `mark-${mark.type}-${mark.row}-${mark.col}-${i}`;
+
+              switch (mark.type) {
+                case 'CR':
+                  return (
+                    <circle
+                      key={key}
+                      cx={cx} cy={cy} r={9}
+                      fill="none" stroke={accent} strokeWidth={2}
+                      pointerEvents="none"
+                    />
+                  );
+                case 'SQ':
+                  return (
+                    <rect
+                      key={key}
+                      x={cx - 9} y={cy - 9} width={18} height={18}
+                      fill="none" stroke={accent} strokeWidth={2}
+                      pointerEvents="none"
+                    />
+                  );
+                case 'TR':
+                  return (
+                    <polygon
+                      key={key}
+                      points={`${cx},${cy - 10} ${cx + 9},${cy + 6} ${cx - 9},${cy + 6}`}
+                      fill="none" stroke={accent} strokeWidth={2}
+                      pointerEvents="none"
+                    />
+                  );
+                case 'MA':
+                  return (
+                    <g key={key} pointerEvents="none">
+                      <line x1={cx - 7} y1={cy - 7} x2={cx + 7} y2={cy + 7}
+                        stroke={accent} strokeWidth={2} />
+                      <line x1={cx + 7} y1={cy - 7} x2={cx - 7} y2={cy + 7}
+                        stroke={accent} strokeWidth={2} />
+                    </g>
+                  );
+                case 'SL':
+                  return (
+                    <rect
+                      key={key}
+                      x={cx - 5} y={cy - 5} width={10} height={10}
+                      fill={accent} stroke="none"
+                      pointerEvents="none"
+                    />
+                  );
+                case 'DD':
+                  return (
+                    <rect
+                      key={key}
+                      x={cx - CELL_SIZE / 2} y={cy - CELL_SIZE / 2}
+                      width={CELL_SIZE} height={CELL_SIZE}
+                      fill="rgba(128,128,128,0.35)"
+                      stroke="rgba(128,128,128,0.5)"
+                      strokeWidth={1}
+                      pointerEvents="none"
+                    />
+                  );
+                default:
+                  return null;
+              }
+            })}
+          </g>
+        )}
 
         {/* Hover preview */}
         {hoverStone}

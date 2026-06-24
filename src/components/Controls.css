@@ -124,6 +124,38 @@
   display: none;
 }
 
+/* ── Marks control ── */
+
+.marks-control {
+  display: flex;
+  gap: 4px;
+}
+
+.marks-toggle {
+  flex: 1;
+  min-width: 0;
+}
+
+.mark-type-select {
+  flex: 0 0 32px;
+  padding: 8px 2px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: center;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.mark-type-select:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 /* ── Setup mode ── */
 
 .setup-title {
