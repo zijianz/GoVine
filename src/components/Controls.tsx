@@ -208,7 +208,7 @@ export default function Controls({
             className={`btn label-toggle ${labelMode ? 'active' : ''}`}
             onClick={onToggleLabelMode}
           >
-            Label
+            Labels
           </button>
           <span className="label-indicator">
             {labelMode ? nextLabel : '—'}
