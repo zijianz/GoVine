@@ -288,6 +288,27 @@ const Board = memo(function Board({
                       pointerEvents="none"
                     />
                   );
+                case 'LB': {
+                  const onBlack = board[mark.row]?.[mark.col] === 'black';
+                  const onWhite = board[mark.row]?.[mark.col] === 'white';
+                  const fill = onBlack ? '#fff' : onWhite ? '#000' : '#555';
+                  return (
+                    <text
+                      key={key}
+                      x={cx}
+                      y={cy}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fill={fill}
+                      fontSize={13}
+                      fontWeight="bold"
+                      className="label-text"
+                      pointerEvents="none"
+                    >
+                      {mark.label ?? '?'}
+                    </text>
+                  );
+                }
                 default:
                   return null;
               }

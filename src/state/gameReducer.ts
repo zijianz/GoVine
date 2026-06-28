@@ -6,6 +6,51 @@ import {
 } from '../core/gameLogic';
 import type { GameState, GameAction, TreeNode, MoveRecord, SGFNode, Mark } from '../core/types';
 
+// ── Label helpers ──
+
+/**
+ * Increment a label string: A→B→...→Z→AA→AB→...→AZ→BA→...
+ * Uses spreadsheet-style column labeling (base-26 with digits 1-26).
+ */
+export function incrementLabel(label: string): string {
+  const chars = label.split('').map(c => c.charCodeAt(0) - 64); // A=1, B=2, ...
+  let carry = 1;
+  let i = chars.length - 1;
+  while (carry > 0 && i >= 0) {
+    chars[i] += carry;
+    if (chars[i] > 26) {
+      chars[i] = 1;
+      carry = 1;
+    } else {
+      carry = 0;
+    }
+    i--;
+  }
+  if (carry > 0) {
+    chars.unshift(1); // prepend 'A'
+  }
+  return chars.map(c => String.fromCharCode(c + 64)).join('');
+}
+
+/**
+ * Compute the next label to place based on existing LB marks on a node.
+ * Finds the maximum label by length then lexicographic order, and increments it.
+ * Returns 'A' when no LB marks exist.
+ */
+export function computeNextLabel(existingMarks: Mark[]): string {
+  const lbMarks = existingMarks.filter(m => m.type === 'LB' && m.label);
+  if (lbMarks.length === 0) return 'A';
+
+  const maxLabel = lbMarks.reduce((max, m) => {
+    const lbl = m.label!;
+    if (lbl.length > max.length) return lbl;
+    if (lbl.length < max.length) return max;
+    return lbl > max ? lbl : max;
+  }, 'A');
+
+  return incrementLabel(maxLabel);
+}
+
 // ── Node ID counter ──
 
 let _nextNodeId = 1;
@@ -48,6 +93,7 @@ export function createInitialState(): GameState {
     setupStones: { black: [], white: [] },
     marksMode: false,
     markType: 'CR',
+    labelMode: false,
   };
 }
 
@@ -430,6 +476,37 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       const updatedNode: TreeNode = { ...currentNode, marks: newMarks };
+      const newTreeNodes = new Map(state.treeNodes);
+      newTreeNodes.set(state.currentNodeId, updatedNode);
+
+      return { ...state, treeNodes: newTreeNodes };
+    }
+
+    case 'TOGGLE_LABEL_MODE':
+      return { ...state, labelMode: !state.labelMode };
+
+    case 'PLACE_LABEL': {
+      const currentNode = state.treeNodes.get(state.currentNodeId);
+      if (!currentNode) return state;
+
+      const existingMarks = currentNode.marks ?? [];
+      const { row, col } = action;
+
+      // Toggle: if an LB mark already exists at this position, remove it
+      const existingIdx = existingMarks.findIndex(
+        m => m.type === 'LB' && m.row === row && m.col === col
+      );
+
+      let newMarks: Mark[];
+      if (existingIdx >= 0) {
+        newMarks = [...existingMarks];
+        newMarks.splice(existingIdx, 1);
+      } else {
+        const nextLabel = computeNextLabel(existingMarks);
+        newMarks = [...existingMarks, { type: 'LB' as const, row, col, label: nextLabel }];
+      }
+
+      const updatedNode: TreeNode = { ...currentNode, marks: newMarks.length > 0 ? newMarks : undefined };
       const newTreeNodes = new Map(state.treeNodes);
       newTreeNodes.set(state.currentNodeId, updatedNode);
 

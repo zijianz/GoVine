@@ -23,13 +23,14 @@ export interface MoveRecord {
 }
 
 // ── Board marks ──
-export type MarkType = 'CR' | 'SQ' | 'TR' | 'MA' | 'SL' | 'DD';
+export type MarkType = 'CR' | 'SQ' | 'TR' | 'MA' | 'SL' | 'DD' | 'LB';
 export type MarkTool = MarkType | 'ERASE';
 
 export interface Mark {
   type: MarkType;
   row: number;
   col: number;
+  label?: string; // only used when type === 'LB'
 }
 
 // ── Game tree node ──
@@ -68,6 +69,7 @@ export interface GameState {
   setupStones: { black: Position[]; white: Position[] };
   marksMode: boolean;
   markType: MarkTool;
+  labelMode: boolean;
 }
 
 // ── Legality-check result ──
@@ -123,4 +125,6 @@ export type GameAction =
   | { type: 'TOGGLE_MARKS_MODE' }
   | { type: 'SET_MARK_TYPE'; markType: MarkTool }
   | { type: 'PLACE_MARK'; row: number; col: number }
+  | { type: 'TOGGLE_LABEL_MODE' }
+  | { type: 'PLACE_LABEL'; row: number; col: number }
 ;

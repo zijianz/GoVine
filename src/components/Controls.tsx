@@ -24,6 +24,9 @@ interface ControlsProps {
   markType: MarkTool;
   onToggleMarksMode: () => void;
   onSetMarkType: (markType: MarkTool) => void;
+  labelMode: boolean;
+  nextLabel: string;
+  onToggleLabelMode: () => void;
 }
 
 export default function Controls({
@@ -47,6 +50,9 @@ export default function Controls({
   markType,
   onToggleMarksMode,
   onSetMarkType,
+  labelMode,
+  nextLabel,
+  onToggleLabelMode,
 }: ControlsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -195,6 +201,18 @@ export default function Controls({
             <option value="SL">◆</option>
             <option value="DD">░</option>
           </select>
+        </div>
+
+        <div className="label-control">
+          <button
+            className={`btn label-toggle ${labelMode ? 'active' : ''}`}
+            onClick={onToggleLabelMode}
+          >
+            Label
+          </button>
+          <span className="label-indicator">
+            {labelMode ? nextLabel : '—'}
+          </span>
         </div>
 
         <input

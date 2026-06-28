@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useGame } from './hooks/useGame';
-import { canDelete } from './state/gameReducer';
+import { canDelete, computeNextLabel } from './state/gameReducer';
 import { generateSGF } from './core/sgf';
 import Board from './components/Board';
 import Controls from './components/Controls';
@@ -28,6 +28,8 @@ export default function App() {
     toggleMarksMode,
     setMarkType,
     placeMark,
+    toggleLabelMode,
+    placeLabel,
   } = useGame();
 
   const handleOpenFile = useCallback(
@@ -48,12 +50,20 @@ export default function App() {
   const comment = state.nodeComments.get(state.currentNodeId) ?? '';
   const currentNodeMarks = state.treeNodes.get(state.currentNodeId)?.marks;
 
-  // Click handler: setup mode → marks mode → play mode
+  // Compute the next label to display
+  const nextLabel = useMemo(
+    () => computeNextLabel(currentNodeMarks ?? []),
+    [currentNodeMarks]
+  );
+
+  // Click handler: setup mode → marks mode → label mode → play mode
   const handleCellClick = state.setupMode
     ? placeSetupStone
     : state.marksMode
       ? placeMark
-      : placeStone;
+      : state.labelMode
+        ? placeLabel
+        : placeStone;
 
   // Live SGF preview
   const sgfPreview = useMemo(
@@ -107,6 +117,9 @@ export default function App() {
             markType={state.markType}
             onToggleMarksMode={toggleMarksMode}
             onSetMarkType={setMarkType}
+            labelMode={state.labelMode}
+            nextLabel={nextLabel}
+            onToggleLabelMode={toggleLabelMode}
           />
           {!state.setupMode && (
             <BranchDiagram

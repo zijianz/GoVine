@@ -122,7 +122,11 @@ function emitMarks(marks: Mark[]): string {
   for (const [type, list] of byType) {
     result += type;
     for (const m of list) {
-      result += `[${toSGFCoord(m.row, m.col)}]`;
+      if (type === 'LB' && m.label) {
+        result += `[${toSGFCoord(m.row, m.col)}:${escapeSGF(m.label)}]`;
+      } else {
+        result += `[${toSGFCoord(m.row, m.col)}]`;
+      }
     }
   }
   return result;
@@ -356,6 +360,19 @@ function parseProperties(
       case 'DD':
         for (const v of values) {
           if (v.length >= 2) marks.push({ type: 'DD', ...fromSGFCoord(v) });
+        }
+        break;
+      case 'LB':
+        for (const v of values) {
+          // SGF format: [coords:label] — split on first colon
+          const colonIdx = v.indexOf(':');
+          if (colonIdx >= 2) {
+            const coord = v.slice(0, 2);
+            const label = v.slice(colonIdx + 1);
+            if (coord.length >= 2) {
+              marks.push({ type: 'LB' as const, ...fromSGFCoord(coord), label });
+            }
+          }
         }
         break;
     }

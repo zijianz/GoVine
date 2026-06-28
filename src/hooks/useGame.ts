@@ -70,6 +70,14 @@ export function useGame() {
     dispatch({ type: 'PLACE_MARK', row, col });
   }, []);
 
+  const toggleLabelMode = useCallback(() => {
+    dispatch({ type: 'TOGGLE_LABEL_MODE' });
+  }, []);
+
+  const placeLabel = useCallback((row: number, col: number) => {
+    dispatch({ type: 'PLACE_LABEL', row, col });
+  }, []);
+
   /** Save current game as an SGF file */
   const saveSGF = useCallback(async () => {
     const sgfContent = generateSGF(state.treeNodes, state.nodeComments, state.setupStones, 'root');
@@ -125,5 +133,7 @@ export function useGame() {
     toggleMarksMode,
     setMarkType,
     placeMark,
+    toggleLabelMode,
+    placeLabel,
   };
 }
