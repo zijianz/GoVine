@@ -1,4 +1,4 @@
-# Go Board
+# GoVine
 
 A Go (围棋) board game app built with React + TypeScript + Vite.
 
