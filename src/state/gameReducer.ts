@@ -336,6 +336,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const root: TreeNode = { id: rootId, parentId: null, childrenIds: [], move: null };
       newTreeNodes.set(rootId, root);
 
+      // Copy root node's comment and marks from the SGF
+      if (action.sgfRoot.comment) {
+        newNodeComments.set(rootId, action.sgfRoot.comment);
+      }
+      if (action.sgfRoot.marks && action.sgfRoot.marks.length > 0) {
+        root.marks = action.sgfRoot.marks;
+      }
+
       for (const childSGF of action.sgfRoot.children) {
         const childId = buildTreeFromSGF(newTreeNodes, newNodeComments, rootId, childSGF);
         const rootNode = newTreeNodes.get(rootId)!;

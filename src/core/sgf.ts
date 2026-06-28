@@ -57,6 +57,10 @@ function generateNode(
       }
     }
     result += emitMarks(node.marks ?? []);
+    const rootComment = nodeComments.get(nodeId);
+    if (rootComment) {
+      result += `C[${escapeSGF(rootComment)}]`;
+    }
     result += generateChildren(treeNodes, nodeComments, setupStones, node);
     return result;
   }
