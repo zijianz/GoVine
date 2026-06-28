@@ -1,6 +1,6 @@
 # GoVine
 
-A Go (围棋) board game app built with React + TypeScript + Vite.
+A digital Go notebook — record positions, jot down variations, and annotate the board so nothing you learned in class slips away.
 
 ![Go Board screenshot](docs/images/board_example.jpg)
 
@@ -15,14 +15,15 @@ Opens at `http://localhost:5173`.
 
 ## Features
 
-- **19×19 board** — click intersections to place stones, alternating black and white
+- **19×19 board** — place stones to recreate any position your teacher shows
 - **Full Go rules** — capturing, suicide prohibition, ko rule
-- **Revert** — undo the last move, captured stones return
-- **Branch** — create alternative lines of play (SGF variations)
-- **Show Index** — toggle move numbers on stones
-- **Branch diagram** — visual game tree on the right, click nodes to navigate
-- **Comments** — write notes for any position (left panel), saved in SGF
-- **Save As / Open** — SGF file import/export with full branch and comment support
+- **Branching** — record alternative lines of play the moment your teacher says "or you could try…"
+- **Labels** — drop sequential markers (A, B, C…) on the board to follow a lecture sequence
+- **Marks** — circle, square, triangle, cross, and more — highlight key shapes and vital points
+- **Show Index** — toggle move numbers so you can retrace the exact order
+- **Branch diagram** — visual game tree on the right, click to jump between variations
+- **Comments** — write notes for any position (left panel), saved inside the SGF file
+- **Save As / Open** — everything (branches, marks, labels, comments) saved as standard SGF
 
 ## Project Structure
 
